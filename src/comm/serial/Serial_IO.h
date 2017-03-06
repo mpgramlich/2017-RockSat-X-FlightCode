@@ -59,20 +59,22 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define UART6 5
 #define UART8 6
 #define UART9 7
+#define USED_FDS 4
 
 namespace Serial_IO
 {
 	extern void * queueData[QUEUE_SIZE];
 	extern OS_Q SerialQueue;
-	extern int serialFd[9];
+	extern int serialFd[8];
+	extern int setFDs[8];
 
 	int SerialRxFlush(int fd);
 	void SerialWriteTask(void * pd);
 	int StartSerialWriteTask();
 
-	inline BYTE postToQueue(void * msg)
+	inline BYTE postToQueue(mail::mail_t * msg)
 	{
-		return OSQPost( &SerialQueue, msg);
+		return OSQPost( &SerialQueue, (void*)msg);
 	}
 
 	inline void initSerial()
@@ -92,22 +94,27 @@ namespace Serial_IO
 		Pins[26].function(PIN_26_UART0_TXD); //TX
 		Pins[24].function(PIN_24_UART0_RXD); //RX
 		serialFd[UART0] = OpenSerial(0, 115200, 1, 8, eParityNone);
+		ReplaceStdio(1,serialFd[UART0]);
 
 		Pins[34].function(PIN_34_UART1_TXD); //TX
 		Pins[32].function(PIN_32_UART1_RXD); //RX
 		serialFd[UART1] = OpenSerial(1, SERIAL_1_BAUDRATE, 1, 8, eParityNone);
+		setFDs[0] = UART1;
 
 		Pins[16].function(PIN_16_UART2_TXD); //TX
 		Pins[13].function(PIN_13_UART2_RXD); //RX
 		serialFd[UART2] = OpenSerial(2, SERIAL_2_BAUDRATE, 1, 8, eParityNone);
+		setFDs[1] = UART2;
 
 		Pins[27].function(PIN_27_UART8_TXD); //TX
 		Pins[29].function(PIN_29_UART8_RXD); //RX
 		serialFd[UART8] = OpenSerial(8, SERIAL_8_BAUDRATE, 1, 8, eParityNone);
+		setFDs[2] = UART8;
 
 		Pins[22].function(PIN_22_UART9_TXD); //TX
 		Pins[20].function(PIN_20_UART9_RXD); //RX
 		serialFd[UART9] = OpenSerial(9, SERIAL_9_BAUDRATE, 1, 8, eParityNone);
+		setFDs[3] = UART9;
 
 
 #ifdef DEBUG_SERIAL_IO__

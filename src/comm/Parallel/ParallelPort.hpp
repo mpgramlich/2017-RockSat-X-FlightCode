@@ -23,7 +23,7 @@ namespace ParallelPort
 {
 
 	void initParallel();
-	void writeBits(uint16_t data);
+	void writeBits(uint16_t* data);
 	void parallelPort_INT();
 
 	extern uint8_t pinArray[16];

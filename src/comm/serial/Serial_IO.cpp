@@ -9,7 +9,8 @@
 
 #include "../spi/SDCard/FileSystemUtils.h"
 
-int Serial_IO::serialFd[9];
+int Serial_IO::serialFd[8];
+int Serial_IO::setFDs[8];
 OS_Q Serial_IO::SerialQueue;
 void * Serial_IO::queueData[QUEUE_SIZE];
 

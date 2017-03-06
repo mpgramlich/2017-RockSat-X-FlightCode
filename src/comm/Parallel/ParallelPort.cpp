@@ -57,14 +57,14 @@ void ParallelPort::initParallel()
 	sim1.gpio.srcr_dspiow = 0x33;
 	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK | SHIFT_CLEAR;
 
-	SetPinIrq( 49, 1, &ParallelPort::parallelPort_INT);  // IRQ 3
+//	SetPinIrq( 49, 1, &ParallelPort::parallelPort_INT);  // IRQ 3
 
 }
 
 /**
  * the LSBit of both bytes is shifted out first. the lowest pin o
  */
-void ParallelPort::writeBits(uint16_t data)
+void ParallelPort::writeBits(uint16_t* data)
 {
 	USER_ENTER_CRITICAL();
 	uint32_t andVar = 0x8080;
@@ -76,14 +76,14 @@ void ParallelPort::writeBits(uint16_t data)
 	{
 		pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;
 
-		pRGPIO_BAR[RGPIO_SET] = (SHIFT_MSB * ((data & andVar) > 0x00ff)) | (SHIFT_LSB * (((data & andVar) & 0x00ff)!=0));
+		pRGPIO_BAR[RGPIO_SET] = (SHIFT_MSB * ((*data & andVar) > 0x00ff)) | (SHIFT_LSB * (((*data & andVar) & 0x00ff)!=0));
 
 		andVar=(andVar>>1);
 		asm volatile("nop");asm volatile("nop");asm volatile("nop");
 
 		pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
 	}
-
+	pRGPIO_BAR[RGPIO_CLR]= ~SHIFT_CLEAR;
 	USER_EXIT_CRITICAL();
 }
 
