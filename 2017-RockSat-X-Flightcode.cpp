@@ -5,12 +5,11 @@
 #include <autoupdate.h>
 #include <smarttrap.h>
 
-#include <pin_irq.h>
-
 #include "Definitions.h"
 
 #include "src/comm/Parallel/ParallelPort.hpp"
 
+HiResTimer* timer = HiResTimer::getHiResTimer(2);
 HiResTimer* throttle = HiResTimer::getHiResTimer(3);
 
 extern "C" {
@@ -19,11 +18,13 @@ void UserMain(void * pd);
 
 const char * AppName="2017-Rocksat-X-Flightcode";
 
-uint16_t parallelPortData = 0;
-void driveParallelPort()
+uint16_t parallelPortData = 0x1;
+void parallelPort_INT()
 {
+	parallelPortData=(parallelPortData==0x8000)?1:parallelPortData<<1;
+
 	ParallelPort::writeBits(parallelPortData);
-	parallelPortData = ~parallelPortData;
+	//parallelPortData = ~parallelPortData;
 }
 
 
@@ -38,7 +39,7 @@ void UserMain(void * pd) {
 
     ParallelPort::initParallel();
     ParallelPort::writeBits(0);
-    SetPinIrq( 49, 1, &driveParallelPort);  // IRQ 3
+
 
     //iprintf("Application started\n");
     while (1) {

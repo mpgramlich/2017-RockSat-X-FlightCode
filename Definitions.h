@@ -27,6 +27,7 @@
 #include <HiResTimer.h>
 
 extern HiResTimer* throttle;
+extern HiResTimer* timer;
 
 #include <SysLog.h> //comment to remove ethernet debugging statements
 
@@ -52,7 +53,11 @@ extern HiResTimer* throttle;
 	#define RGPIO_7 0x0080     // Pin 24  C10
 	#define RGPIO_8 0x0100     // Pin 25  D10
 
-
+//Serial Definitions
+	#define SERIAL_1_BAUDRATE 115200
+	#define SERIAL_2_BAUDRATE 9600
+	#define SERIAL_8_BAUDRATE 9600
+	#define SERIAL_9_BAUDRATE 9600
 
 //Network Debugging
 	#ifdef SYSLOG_H
@@ -64,7 +69,8 @@ extern HiResTimer* throttle;
 
 //Task Priorities
 	#define MAIN_TASK_PRIO 52
-	#define SERIAL_WRITE_TASK_PRIO 48
+	#define SERIAL_WRITE_TASK_PRIO 50
+	#define SD_WRITE_TASK_PRIO 49
 
 
 //Message Specific Definitions
