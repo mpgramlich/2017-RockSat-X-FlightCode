@@ -44,6 +44,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <serial.h>
 #include <pins.h>
 #include <stdarg.h>
+#include "SD_IO.h"
 #include "../msgs/Mailbox-msg.h"
 
 #ifdef DEBUG_SERIAL_IO__
@@ -61,16 +62,29 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define UART9 7
 #define USED_FDS 4
 
+#define SELECT_READ_TIMEOUT 5
+#define BUFFER_WRITE_TIMEOUT TICKS_PER_SECOND
+
 namespace Serial_IO
 {
+	struct __attribute__((packed)) serialData_t;
+	union __attribute__ ((packed)) serialMsg_t;
+
 	extern void * queueData[QUEUE_SIZE];
 	extern OS_Q SerialQueue;
 	extern int serialFd[8];
 	extern int setFDs[8];
+	extern serialMsg_t msg[NUM_OF_SERIAL_IN_BUFFERS];
+	extern mail::mail_t package[NUM_OF_SERIAL_IN_BUFFERS];
 
 	int SerialRxFlush(int fd);
 	void SerialWriteTask(void * pd);
+	void SerialReadTask(void * pd);
 	int StartSerialWriteTask();
+	int StartSerialReadTask();
+
+	void initBuffers();
+	inline int selectNextBuffer();
 
 	inline BYTE postToQueue(mail::mail_t * msg)
 	{
@@ -147,7 +161,27 @@ namespace Serial_IO
 		}
 #endif
 	}
-
 }
+
+#define SERIAL_DATA_T_LENGTH_WITHOUT_DATA 18
+struct __attribute__((packed)) Serial_IO::serialData_t
+{
+	uint32_t H1;
+	uint8_t  type;
+	uint8_t interfaceNum;
+	uint16_t counter;
+	tick_t   systemTick;
+	uint16_t dataLength;
+	uint32_t dataBegin;
+	 uint8_t data[SERIAL_DATA_PER_MSG+FOOTER_LENGTH];
+};
+
+union __attribute__ ((packed)) Serial_IO::serialMsg_t
+{
+	serialData_t serialMsg;
+	uint8_t serialData[sizeof(serialData_t)];
+	char serialDataChar[sizeof(serialData_t)];
+};
+
 
 #endif /* SERIAL_IO_H_ */

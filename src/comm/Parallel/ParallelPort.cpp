@@ -6,6 +6,10 @@
  */
 
 #include "ParallelPort.hpp"
+#include <ucos.h>
+#include <cfinter.h>
+void * ParallelPort::queueData[QUEUE_SIZE];
+OS_Q ParallelPort::parallelQueue;
 
 uint8_t ParallelPort::pinArray[16] =
 	{9,10,12,14,15,19,21,23,25,28,30,31,33,35,36,37};
@@ -56,6 +60,8 @@ void ParallelPort::initParallel()
 	// Set DSPI0 & One-Wire Slew Rate Control Register (SRCR_DSPIOW) to their maximum freq
 	sim1.gpio.srcr_dspiow = 0x33;
 	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK | SHIFT_CLEAR;
+	asm volatile("nop");
+	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;
 
 //	SetPinIrq( 49, 1, &ParallelPort::parallelPort_INT);  // IRQ 3
 
@@ -66,28 +72,247 @@ void ParallelPort::initParallel()
  */
 void ParallelPort::writeBits(uint16_t* data)
 {
-	USER_ENTER_CRITICAL();
-	uint32_t andVar = 0x8080;
-	int i = 0;
-	pRGPIO_BAR[RGPIO_CLR]= ~SHIFT_CLEAR;
-	asm volatile("nop");asm volatile("nop");asm volatile("nop");
-	pRGPIO_BAR[RGPIO_SET]=  SHIFT_CLEAR;
-	for(; i < 8; i++)
+
+	/*
+	 init:
+	 clock low;
+	 data0 low;
+	 data1 low;
+	 clear low;
+
+	 shift data:
+
+	 clear high;
+
+	 clock high;
+	 shift MSB;
+	 clock low;
+
+	 clock high;
+	 shift MSB-1;
+	 clock low;
+
+	 clock high;
+	 shift MSB-2;
+	 clock low;
+
+	 clock high;
+	 shift MSB-3;
+	 clock low;
+
+	 clock high;
+	 shift MSB-4;
+	 clock low;
+
+	 clock high;
+	 shift MSB-15;
+	 clock low;
+
+	 clear low;
+	 */
+
+	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB & ~SHIFT_CLEAR;
+	asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
+
+	uint16_t andVar = 0x8080;
+
+	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLEAR;
+	asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
+	for(int i=0; i < 8; i++)
 	{
-		pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;
-
 		pRGPIO_BAR[RGPIO_SET] = (SHIFT_MSB * ((*data & andVar) > 0x00ff)) | (SHIFT_LSB * (((*data & andVar) & 0x00ff)!=0));
-
-		andVar=(andVar>>1);
-		asm volatile("nop");asm volatile("nop");asm volatile("nop");
-
+		asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
 		pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+		asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
+		pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;
+		andVar=(andVar>>1);
 	}
-	pRGPIO_BAR[RGPIO_CLR]= ~SHIFT_CLEAR;
-	USER_EXIT_CRITICAL();
+	asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
+	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+	asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
+	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;
+
+
+
+
+
+
+
+
+
+
+
+
+
+//	//USER_ENTER_CRITICAL();
+//	uint16_t andVar = 0x8080;
+//	int i = 0;
+//	for(; i < 8; i++)
+//	{
+//		pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;
+//		asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//		pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//		asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	}
+//	pRGPIO_BAR[RGPIO_CLR]= ~SHIFT_CLEAR;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET]=  SHIFT_CLEAR;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	for(i=0; i < 8; i++)
+//	{
+//		pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;
+//		pRGPIO_BAR[RGPIO_SET] = (SHIFT_MSB * ((*data & andVar) > 0x00ff)) | (SHIFT_LSB * (((*data & andVar) & 0x00ff)!=0));
+//		asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//		pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//		asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//		andVar=(andVar>>1);
+//	}
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+////	pRGPIO_BAR[RGPIO_CLR]= ~SHIFT_CLEAR;
+//	//USER_EXIT_CRITICAL();
 }
 
-void ParallelPort::parallelPort_INT()
-{
 
+
+struct __attribute__((packed)) noDataMsg_t
+{
+	uint32_t H1;
+	uint8_t  type;
+	tick_t	 systemTick;
+	uint32_t F1;
+};
+
+noDataMsg_t noDataMsg;
+mail::mail_t noDataPackage;
+
+volatile mail::mail_t* datamsg=0;
+static uint16_t parallelZero=0;
+
+OS_SEM parallelPortFinished;
+volatile bool portBusy = false;
+volatile bool dataAvail = false;
+volatile uint32_t parallelAmountWritten=0;
+volatile uint32_t ParallelPort::intCount=0;
+
+//INTERRUPT(parallelPort_INT, 0x2000)
+void parallelPort_INT()
+{
+	ParallelPort::intCount++;
+	//outbyte(40);outbyte(40);outbyte(40);
+//	if(dataAvail)
+//	{
+//		outbyte(49);
+//	}
+	//outbyte(0x0A);
+	//outbyte(0x0A);
+	if(dataAvail && datamsg && (parallelAmountWritten < datamsg->length))
+	{
+		//outbyte(41);outbyte(41);outbyte(41);outbyte(0x0A);
+		portBusy=true;
+		if(datamsg->length - parallelAmountWritten == 1)
+		{
+			uint16_t paddedData = ((uint16_t)datamsg->data[parallelAmountWritten])<<8;
+			ParallelPort::writeBits(&paddedData);
+			parallelAmountWritten++;
+		}
+		else
+		{
+			ParallelPort::writeBits((uint16_t*)(&datamsg->data[parallelAmountWritten]));
+			parallelAmountWritten+=2;
+		}
+	}
+	else
+	{
+		//outbyte(42);outbyte(42);outbyte(42);outbyte(0x0A);
+		ParallelPort::writeBits(&parallelZero);
+		if(!noDataPackage.inUse)
+		{
+			noDataPackage.inUse=TRUE;
+			noDataMsg.systemTick=TimeTick;
+			//outbyte(44);outbyte(44);outbyte(44);outbyte(0x0A);
+			ParallelPort::postToQueue(&noDataPackage);
+			//outbyte(42);outbyte(42);outbyte(42);outbyte(0x0A);
+		}
+	}
+	if(dataAvail && portBusy && datamsg && parallelAmountWritten >= datamsg->length)
+	{
+		//outbyte(46);outbyte(46);outbyte(46);outbyte(0x0A);
+		OSSemPost(&parallelPortFinished);
+		parallelAmountWritten = 0;
+		portBusy = false;
+		dataAvail = false;
+	}
+}
+
+void ParallelPort::ParallelQueueTask(void * pd)
+{
+	DEBUG_PRINT_NET("Started Parallel Write Task\r\n");
+	BYTE err=0;
+
+	while(true)
+	{
+		datamsg = (mail::mail_t*)OSQPend(&parallelQueue, 0, &err);
+		if(portBusy)
+		{
+			DEBUG_PRINT_NET("Waiting for Parallel Finish 1 dataavail=%d\r\n",dataAvail);
+			OSSemPend(&parallelPortFinished, 0);
+			portBusy=false;
+		}
+		if(err == OS_NO_ERR || err == OS_Q_FULL)
+		{
+			dataAvail=true;
+			DEBUG_PRINT_NET("Waiting for Parallel Finish 2 dataavail=%d\r\n",dataAvail);
+			OSSemPend(&parallelPortFinished, 0);
+			datamsg->inUse = FALSE;
+		}
+		err = 0;
+	}
+}
+
+int ParallelPort::StartParallelQueueTask()
+{
+	int ret = 0;
+
+	noDataMsg.H1=MSG_HEADER;
+	noDataMsg.type=0;
+	noDataMsg.F1=MSG_FOOTER;
+
+	noDataPackage.data=(char*) &noDataMsg;
+	noDataPackage.inUse=FALSE;
+	noDataPackage.length=sizeof(noDataMsg_t);
+	noDataPackage.pktID=1;
+	noDataPackage.type=0;
+	noDataPackage.serialfd=0;
+
+	//RGPIO::SetupRGPIO();
+
+	OSSemInit(&parallelPortFinished,0);
+	ret = OSQInit(&parallelQueue, queueData, QUEUE_SIZE);
+	if(ret != OS_NO_ERR)
+	{
+		return ret;
+	}
+	OSSimpleTaskCreatewName(ParallelPort::ParallelQueueTask, PARALLEL_QUEUE_TASK_PRIO, "Parallel Task");
+
+	OSTimeDly(20);
+
+	Pins[50].function(PIN_50_IRQ2);
+	SetPinIrq( 50, -1, parallelPort_INT);  // IRQ 2
+
+	return 0;
 }

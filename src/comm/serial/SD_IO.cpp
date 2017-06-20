@@ -6,6 +6,7 @@
  */
 
 #include "SD_IO.h"
+#include "../Parallel/ParallelPort.hpp"
 
 #include "../spi/SDCard/FileSystemUtils.h"
 
@@ -96,21 +97,21 @@ void SD_IO::SDWriteTask(void * pd)
 			busy = TRUE;
 			DEBUG_PRINT_NET("SD:: Received Package, writing data %d %2.6f\r\n",
 											datamsg->pktID, timer->readTime());
-			if(datamsg->type == 1)
-			{
-				sprintf(name,"ADC%d.txt",datamsg->pktID);
-				DEBUG_PRINT_NET("Received ACC data");
-			}
-			else if(datamsg->type == 2)
-			{
-				sprintf(name,"DBG%d.txt",datamsg->pktID);
-				//DEBUG_PRINT_NET("Received Debug data");
-				datamsg->length = strlen(datamsg->data);
-			}
-			else
-			{
-				sprintf(name,"LP%d.txt",datamsg->pktID);
-			}
+//			if(datamsg->type == 1)
+//			{
+//				sprintf(name,"ADC%d.txt",datamsg->pktID);
+//				DEBUG_PRINT_NET("Received ACC data");
+//			}
+//			else if(datamsg->type == 2)
+//			{
+//				sprintf(name,"DBG%d.txt",datamsg->pktID);
+//				//DEBUG_PRINT_NET("Received Debug data");
+//				datamsg->length = strlen(datamsg->data);
+//			}
+//			else
+//			{
+				sprintf(name,"Tele%d.txt",0);
+//			}
 			AppendFile(//reinterpret_cast<BYTE*>(NBADCTEST::letter[0].SDData),
 					reinterpret_cast<BYTE*>(datamsg->data),
 					name,
@@ -118,14 +119,15 @@ void SD_IO::SDWriteTask(void * pd)
 					);
 			DEBUG_PRINT_NET("SD:: Finished writing data %d %2.6f\r\n",
 											datamsg->pktID, timer->readTime());
-			if(datamsg->type==2)
-			{
-				datamsg->data[0] = 0;
-				datamsg->inUse = FALSE;
-			}
+//			if(datamsg->type==2)
+//			{
+//				datamsg->data[0] = 0;
+//				datamsg->inUse = FALSE;
+//			}
 			busy = FALSE;
 		}
-		datamsg->inUse = FALSE;
+//		datamsg->inUse = FALSE;
+		ParallelPort::postToQueue(datamsg);
 		err = 0;
 		i++;
 	}

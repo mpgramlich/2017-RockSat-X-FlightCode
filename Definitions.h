@@ -29,7 +29,8 @@
 extern HiResTimer* throttle;
 extern HiResTimer* timer;
 
-#include <SysLog.h> //comment to remove ethernet debugging statements
+//#define REDIRECT_NET_DEBUG_TO_STDOUT
+//#include <SysLog.h> //comment to remove ethernet debugging statements
 
 //RGPIO
 	// Addresses of Rapid GPIO registers
@@ -54,31 +55,45 @@ extern HiResTimer* timer;
 	#define RGPIO_8 0x0100     // Pin 25  D10
 
 //Serial Definitions
-	#define SERIAL_1_BAUDRATE 115200
+	#define SERIAL_1_BAUDRATE 9600
 	#define SERIAL_2_BAUDRATE 9600
 	#define SERIAL_8_BAUDRATE 9600
 	#define SERIAL_9_BAUDRATE 9600
 
 //Network Debugging
+#ifdef REDIRECT_NET_DEBUG_TO_STDOUT
+#define DEBUG_PRINT_NET(args...) iprintf(args)
+#else
 	#ifdef SYSLOG_H
 	#define SYSLOGIP "192.168.11.99"
 	#define DEBUG_PRINT_NET(args...) SysLog(args)
 	#else
 	#define DEBUG_PRINT_NET(args...)
 	#endif
+#endif
 
 //Task Priorities
-	#define MAIN_TASK_PRIO 52
-	#define SERIAL_WRITE_TASK_PRIO 50
+
+	#define PARALLEL_QUEUE_TASK_PRIO 48
 	#define SD_WRITE_TASK_PRIO 49
+	#define SERIAL_READ_TASK_PRIO 50
+	#define SERIAL_WRITE_TASK_PRIO 51
+	#define MAIN_TASK_PRIO 52
 
 
 //Message Specific Definitions
 	#define MSG_HEADER 				0xFF0A0BCC
+	#define MSG_FOOTER 				0xDEADDEAD
+static __attribute__((unused)) uint32_t footer_val=MSG_FOOTER;
 	#define PAYLOAD_ACT_MSG_HEADER	0xEE0F0ABB
 	#define DATA_BEGIN_HEADER		0x4D47474C //'MGGL'
 	#define DATA_END_FOOTER			0xFA
 	#define IDLE 					0x00
+
+#define NUM_OF_SERIAL_IN_BUFFERS 10000
+#define SERIAL_DATA_PER_MSG 1500
+#define FOOTER_LENGTH 4
+#define SERIAL_PACKAGE_TYPE 42
 
 /*
 The MIT License (MIT)

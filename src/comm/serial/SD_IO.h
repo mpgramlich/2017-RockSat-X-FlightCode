@@ -66,9 +66,9 @@ namespace SD_IO
 
 	void findAndMakeNextAvalDir();
 
-	inline BYTE postToQueue(void * msg)
+	inline BYTE postToQueue(mail::mail_t * msg)
 	{
-		return OSQPost( &SDQueue, msg);
+		return OSQPost( &SDQueue, (void*)msg);
 	}
 }
 
