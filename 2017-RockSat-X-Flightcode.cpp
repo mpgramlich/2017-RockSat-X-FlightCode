@@ -25,6 +25,14 @@ void UserMain(void * pd);
 
 const char * AppName="2017-Rocksat-X-Flightcode";
 
+void SetupTimer()
+{
+	timer = HiResTimer::getHiResTimer(2);
+	timer->clearInterruptFunction();
+	timer->init();
+	timer->start();
+}
+
 void UserMain(void * pd) {
     InitializeStack();
     OSChangePrio(MAIN_TASK_PRIO);
@@ -39,6 +47,8 @@ void UserMain(void * pd) {
 	#endif
 
     //iprintf("Testing0\r\n");
+
+	SetupTimer();
 
     Serial_IO::initSerial();
     ParallelPort::initParallel();
@@ -73,3 +83,5 @@ void UserMain(void * pd) {
         DEBUG_PRINT_NET("Testing... %u\r\n",ParallelPort::intCount);
     }
 }
+
+

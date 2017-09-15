@@ -38,7 +38,7 @@ void Serial_IO::initBuffers()
 
 inline int Serial_IO::selectNextBuffer()
 {
-	for(uint16_t selectedBuffer = NUM_OF_SERIAL_IN_BUFFERS; selectedBuffer >= 0; selectedBuffer--)
+	for(uint16_t selectedBuffer = NUM_OF_SERIAL_IN_BUFFERS-1; selectedBuffer >= 0; selectedBuffer--)
 	{
 		if(package[selectedBuffer].inUse == FALSE)
 		{
@@ -110,12 +110,12 @@ void Serial_IO::SerialReadTask(void * pd)
 				//Serial_IO::writePend(&Serial_IO::serialFd[Serial_IO::setFDs[i]],readData, amountRead);
 			}
 
-			if(((TimeTick - msg[currentBufNum[i]].serialMsg.systemTick) > BUFFER_WRITE_TIMEOUT) &&
-					(SERIAL_DATA_PER_MSG-msg[currentBufNum[i]].serialMsg.dataLength < 150))
+			if((((TimeTick - msg[currentBufNum[i]].serialMsg.systemTick) > BUFFER_WRITE_TIMEOUT) && msg[currentBufNum[i]].serialMsg.dataLength) || //should be or
+					(SERIAL_DATA_PER_MSG-msg[currentBufNum[i]].serialMsg.dataLength < BUFFER_SIZE_DELTA))
 			{
 				DEBUG_PRINT_NET("Interface Num %d sending mail\r\n",Serial_IO::setFDs[i]);
 
-				memcpy(&msg[currentBufNum[i]].serialData[msg[currentBufNum[i]].serialMsg.dataLength],&footer_val,4);
+				memcpy(&msg[currentBufNum[i]].serialMsg.data[msg[currentBufNum[i]].serialMsg.dataLength],&footer_val,4);
 				msg[currentBufNum[i]].serialMsg.dataLength+=4;
 				package[currentBufNum[i]].length=SERIAL_DATA_T_LENGTH_WITHOUT_DATA+msg[currentBufNum[i]].serialMsg.dataLength;
 				SD_IO::postToQueue(&package[currentBufNum[i]]);
@@ -128,6 +128,7 @@ void Serial_IO::SerialReadTask(void * pd)
 				{
 					msg[currentBufNum[i]].serialMsg.interfaceNum=setFDs[i];
 					msg[currentBufNum[i]].serialMsg.systemTick=TimeTick;
+					msg[currentBufNum[i]].serialMsg.dataLength=0;
 				}
 			}
 

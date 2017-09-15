@@ -1,4 +1,4 @@
-/*
+ /*
  * Definitions.h
  *
  *  Created on: May 29, 2015
@@ -55,10 +55,10 @@ extern HiResTimer* timer;
 	#define RGPIO_8 0x0100     // Pin 25  D10
 
 //Serial Definitions
-	#define SERIAL_1_BAUDRATE 9600
-	#define SERIAL_2_BAUDRATE 9600
-	#define SERIAL_8_BAUDRATE 9600
-	#define SERIAL_9_BAUDRATE 9600
+	#define SERIAL_1_BAUDRATE 57600 //marshall
+	#define SERIAL_2_BAUDRATE 57600 //state
+	#define SERIAL_8_BAUDRATE 9600   //pep
+	#define SERIAL_9_BAUDRATE 57600
 
 //Network Debugging
 #ifdef REDIRECT_NET_DEBUG_TO_STDOUT
@@ -83,7 +83,7 @@ extern HiResTimer* timer;
 
 //Message Specific Definitions
 	#define MSG_HEADER 				0xFF0A0BCC
-	#define MSG_FOOTER 				0xDEADDEAD
+	#define MSG_FOOTER 				0x1234DEAD
 static __attribute__((unused)) uint32_t footer_val=MSG_FOOTER;
 	#define PAYLOAD_ACT_MSG_HEADER	0xEE0F0ABB
 	#define DATA_BEGIN_HEADER		0x4D47474C //'MGGL'
@@ -91,9 +91,11 @@ static __attribute__((unused)) uint32_t footer_val=MSG_FOOTER;
 	#define IDLE 					0x00
 
 #define NUM_OF_SERIAL_IN_BUFFERS 10000
-#define SERIAL_DATA_PER_MSG 1500
+#define SERIAL_DATA_PER_MSG 100
+#define BUFFER_SIZE_DELTA 10
 #define FOOTER_LENGTH 4
 #define SERIAL_PACKAGE_TYPE 42
+#define EMPTY_SERIAL_TYPE 52
 
 /*
 The MIT License (MIT)

@@ -111,39 +111,80 @@ void ParallelPort::writeBits(uint16_t* data)
 	 clear low;
 	 */
 
-	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB & ~SHIFT_CLEAR;
-	asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
-
 	uint16_t andVar = 0x8080;
 
+	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB & ~SHIFT_CLEAR;
+	asm volatile("nop");asm volatile("nop");asm volatile("nop");
 	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLEAR;
-	asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
 	for(int i=0; i < 8; i++)
 	{
 		pRGPIO_BAR[RGPIO_SET] = (SHIFT_MSB * ((*data & andVar) > 0x00ff)) | (SHIFT_LSB * (((*data & andVar) & 0x00ff)!=0));
-		asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
+		asm volatile("nop");asm volatile("nop");asm volatile("nop");
 		pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
-		asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
+		asm volatile("nop");asm volatile("nop");asm volatile("nop");
 		pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;
 		andVar=(andVar>>1);
 	}
-	asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
+	asm volatile("nop");asm volatile("nop");asm volatile("nop");
 	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
-	asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");asm volatile("nop");
+	asm volatile("nop");asm volatile("nop");asm volatile("nop");
 	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB;
 
 
-
-
-
-
-
-
-
-
-
-
-
+//	//uint16_t andVar = 0x8080;
+//
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB & ~SHIFT_CLEAR;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLEAR;
+//
+//	pRGPIO_BAR[RGPIO_SET] = (((*data & 0x8000)!=0)*SHIFT_MSB)  | (((*data & 0x0080)!=0)*SHIFT_LSB);
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK;
+//	pRGPIO_BAR[RGPIO_SET] = (((*data & 0x4000)!=0)*SHIFT_MSB)  | (((*data & 0x0040)!=0)*SHIFT_LSB);
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK;
+//	pRGPIO_BAR[RGPIO_SET] = (((*data & 0x2000)!=0)*SHIFT_MSB)  | (((*data & 0x0020)!=0)*SHIFT_LSB);
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK;
+//	pRGPIO_BAR[RGPIO_SET] = (((*data & 0x1000)!=0)*SHIFT_MSB)  | (((*data & 0x0010)!=0)*SHIFT_LSB);
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK;
+//	pRGPIO_BAR[RGPIO_SET] = (((*data & 0x0800)!=0)*SHIFT_MSB)  | (((*data & 0x0008)!=0)*SHIFT_LSB);
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK;
+//	pRGPIO_BAR[RGPIO_SET] = (((*data & 0x0400)!=0)*SHIFT_MSB)  | (((*data & 0x0004)!=0)*SHIFT_LSB);
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK;
+//	pRGPIO_BAR[RGPIO_SET] = (((*data & 0x0200)!=0)*SHIFT_MSB)  | (((*data & 0x0002)!=0)*SHIFT_LSB);
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK;
+//	pRGPIO_BAR[RGPIO_SET] = (((*data & 0x0100)!=0)*SHIFT_MSB)  | (((*data & 0x0001)!=0)*SHIFT_LSB);
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//	pRGPIO_BAR[RGPIO_SET] = SHIFT_CLOCK;
+//	asm volatile("nop");asm volatile("nop");asm volatile("nop");
+//
+//	pRGPIO_BAR[RGPIO_CLR] = ~SHIFT_CLOCK & ~SHIFT_LSB & ~SHIFT_MSB & ~SHIFT_CLEAR;
 //	//USER_ENTER_CRITICAL();
 //	uint16_t andVar = 0x8080;
 //	int i = 0;
@@ -192,7 +233,7 @@ void ParallelPort::writeBits(uint16_t* data)
 struct __attribute__((packed)) noDataMsg_t
 {
 	uint32_t H1;
-	uint8_t  type;
+	uint16_t  type;
 	tick_t	 systemTick;
 	uint32_t F1;
 };
@@ -269,14 +310,14 @@ void ParallelPort::ParallelQueueTask(void * pd)
 		datamsg = (mail::mail_t*)OSQPend(&parallelQueue, 0, &err);
 		if(portBusy)
 		{
-			DEBUG_PRINT_NET("Waiting for Parallel Finish 1 dataavail=%d\r\n",dataAvail);
+			//DEBUG_PRINT_NET("Waiting for Parallel Finish 1 dataavail=%d\r\n",dataAvail);
 			OSSemPend(&parallelPortFinished, 0);
 			portBusy=false;
 		}
 		if(err == OS_NO_ERR || err == OS_Q_FULL)
 		{
 			dataAvail=true;
-			DEBUG_PRINT_NET("Waiting for Parallel Finish 2 dataavail=%d\r\n",dataAvail);
+			//DEBUG_PRINT_NET("Waiting for Parallel Finish 2 dataavail=%d\r\n",dataAvail);
 			OSSemPend(&parallelPortFinished, 0);
 			datamsg->inUse = FALSE;
 		}
@@ -289,7 +330,8 @@ int ParallelPort::StartParallelQueueTask()
 	int ret = 0;
 
 	noDataMsg.H1=MSG_HEADER;
-	noDataMsg.type=0;
+	noDataMsg.type=EMPTY_SERIAL_TYPE;
+	noDataMsg.systemTick=TimeTick;
 	noDataMsg.F1=MSG_FOOTER;
 
 	noDataPackage.data=(char*) &noDataMsg;

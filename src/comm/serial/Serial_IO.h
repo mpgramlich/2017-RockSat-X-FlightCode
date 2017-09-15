@@ -65,6 +65,7 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SELECT_READ_TIMEOUT 5
 #define BUFFER_WRITE_TIMEOUT TICKS_PER_SECOND
 
+
 namespace Serial_IO
 {
 	struct __attribute__((packed)) serialData_t;
